@@ -1,0 +1,52 @@
+services:
+  api: &main_app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: url_scanner:${URL_SCANNER_VERSION:-latest}
+    restart: always
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      db:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    environment:
+      URL_SCANNER_HOST: 0.0.0.0
+      URL_SCANNER_DB_HOST: url_scanner-db
+      URL_SCANNER_DB_PORT: 5432
+      URL_SCANNER_DB_USER: url_scanner
+      URL_SCANNER_DB_PASS: url_scanner
+      URL_SCANNER_DB_BASE: url_scanner
+
+  db:
+    image: postgres:18.1-bookworm
+    hostname: url_scanner-db
+    environment:
+      POSTGRES_PASSWORD: "url_scanner"
+      POSTGRES_USER: "url_scanner"
+      POSTGRES_DB: "url_scanner"
+    volumes:
+      - url_scanner-db-data:/var/lib/postgresql
+    restart: always
+    healthcheck:
+      test: pg_isready -U url_scanner
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    <<: *main_app
+    restart: "no"
+    command: alembic upgrade head
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+
+volumes:
+  url_scanner-db-data:
+    name: url_scanner-db-data
