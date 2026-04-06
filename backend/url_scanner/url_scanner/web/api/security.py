@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta
 
 import bcrypt
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -15,28 +15,24 @@ SECRET_KEY = os.getenv("SECRET_KEY", "")
 ALGORITHM = "HS256"
 
 
-async def verify_user_cookie(access_token: str = Cookie(None)):
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-    if not access_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No token found. Please log in.",
-        )
+security = HTTPBearer()
+
+async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials 
 
     try:
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
 
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token payload.")
-
-        print(f"🔒 BOUNCER: Successfully authenticated User ID {user_id}!")
+            
         return user_id
 
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired or invalid."
-        )
+        raise HTTPException(status_code=401, detail="Token expired or invalid.")
 
 
 class UserLogin(BaseModel):
@@ -61,18 +57,12 @@ async def send_login(
 
     token = create_token({"user_id": db_user.id})
 
-    response.set_cookie(
-        key="access_token",
-        value=token,
-        httponly=True,
-        max_age=1800,
-        samesite="lax",
-        secure=False,
-    )
 
-    return {"message": "login success", 
-            "user": {"id": db_user.id, 
-            "username": db_user.username}}
+    return {
+        "message": "Login successful",
+        "access_token": token,
+        "user": {"id": db_user.id, "username": db_user.username}
+    }
 
 
 async def authenticate_user(db: AsyncSession, username: str, password: str):
@@ -105,6 +95,5 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 @router.get("/verify-session")
-async def verify_session(user_id: int = Depends(verify_user_cookie)):
-    # If the bouncer lets them through, they are logged in!
+async def verify_session(user_id: int = Depends(verify_user_token)):
     return {"user": {"id": user_id}}

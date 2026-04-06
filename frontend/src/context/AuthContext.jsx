@@ -1,6 +1,8 @@
 // src/context/AuthContext.jsx
 import { createContext, useState, useEffect } from "react";
 import { apiFetch } from "../services/api";
+import { setCookie, eraseCookie } from "../utils/cookie.js";
+
 
 export const AuthContext = createContext();
 
@@ -23,21 +25,7 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  // 2. The login function (used by Login.jsx)
-  const login = async (username, password) => {
-    const data = await apiFetch("/login", {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-    });
-    setUser(data.user || { username }); // Set user based on FastAPI response
-  };
-
-  // 3. The logout function (used by Dashboard.jsx)
-  const logout = async () => {
-    // You will eventually want to make a FastAPI /logout endpoint to delete the cookie
-    // await apiFetch("/logout", { method: "POST" }); 
-    setUser(null);
-  };
+  
 
   const signup = async (email, username, password) => {
     const data = await apiFetch("/signup", {
@@ -45,6 +33,24 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify({ email, username, password }),
     });
     return data; // Return the success message so the Signup page knows it worked
+  };
+
+
+
+  const login = async (username, password) => {
+    const data = await apiFetch("/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+    
+    
+    setCookie("access_token", data.access_token, 1); 
+    setUser(data.user);
+  };
+
+  const logout = async () => {
+    eraseCookie("access_token"); 
+    setUser(null);
   };
 
   return (

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from url_scanner.db.dependencies import get_db_session
 from url_scanner.db.models.main_model import Url
 
-from url_scanner.web.api.security import verify_user_cookie
+from url_scanner.web.api.security import verify_user_token
 
 router = APIRouter()
 
@@ -19,7 +19,7 @@ class ScanRequest(BaseModel):
 @router.post("/scan")
 async def scan_website_images(
     request: ScanRequest,
-    user_id: int = Depends(verify_user_cookie),
+    user_id: int = Depends(verify_user_token),
     db: AsyncSession= Depends(get_db_session)
 ):
     target_url = str(request.url)

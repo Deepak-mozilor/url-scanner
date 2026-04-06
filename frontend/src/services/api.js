@@ -1,13 +1,22 @@
+import { getCookie } from "../utils/cookie.js";
+
 const BASE_URL = "http://localhost:8000"; 
 
 export const apiFetch = async (endpoint, options = {}) => {
+  const token = getCookie("access_token"); 
+  
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
-    credentials: "include", 
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers: headers,
   });
 
   if (!response.ok) {
