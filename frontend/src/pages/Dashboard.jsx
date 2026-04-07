@@ -1,6 +1,7 @@
-import { useState, useContext } from "react";
+import { useState, useContext ,useEffect} from "react";
 import { AuthContext } from "../context/AuthContext";
 import { apiFetch } from "../services/api";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const styles = {
   root: {
@@ -444,6 +445,9 @@ function DonutChart({ withAlt, missing }) {
 export default function Dashboard() {
   const { user, logout } = useContext(AuthContext);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [targetUrl, setTargetUrl] = useState("");
   const [images, setImages] = useState([]);
   const [totalImages, setTotalImages] = useState(0);
@@ -452,8 +456,56 @@ export default function Dashboard() {
   const [missingAltCount, setMissingAltCount] = useState(0);
   const [hasScanned, setHasScanned] = useState(false);
 
-  const handleScan = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    // Check if we arrived here from the History page with a URL
+    if (location.state && location.state.autoScanUrl) {
+      const incomingUrl = location.state.autoScanUrl;
+      
+      // 1. Put the URL in the input box so the user sees it
+      setTargetUrl(incomingUrl); 
+      
+      // 2. Immediately trigger the scan logic
+      handleScan(null, incomingUrl); 
+      
+      // 3. Clear the router state so it doesn't re-scan if they refresh the page!
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+  
+  const googleSearch = async (googleUrl) => {
+    try {
+      // 1. Fetch the raw HTML from Google via your proxy
+      const proxyData = await apiFetch(`/proxy/google?url=${encodeURIComponent(googleUrl)}`);
+      
+      // 2. Immediately send that raw HTML to your scanner
+      const scanData = await apiFetch("/scan", {
+        method: "POST",
+        body: JSON.stringify({ 
+          url: googleUrl, 
+          html: proxyData.html // <--- Passing the raw HTML to the backend!
+        }),
+      });
+
+      console.log(proxyData.html);
+
+      setImages(scanData.images);
+      setTotalImages(scanData.total_images);
+      setMissingAltCount(scanData.missing_alt_count);
+      setHasScanned(true);
+
+    } catch (error) {
+      console.error("Google scan failed:", error);
+      setError("Failed to scan Google Search URL.");
+    }
+  };
+
+  // 2. The Traffic Cop
+  const handleScan = async (e, directUrl = null) => {
+    if (e) e.preventDefault(); 
+    
+    // Use the direct URL if provided, otherwise use what's typed in the input box
+    const urlToProcess = directUrl || targetUrl; 
+
     setLoading(true);
     setError(null);
     setTotalImages(0);
@@ -462,16 +514,22 @@ export default function Dashboard() {
     setHasScanned(false);
 
     try {
-      const data = await apiFetch("/scan", {
-        method: "POST",
-        body: JSON.stringify({ url: targetUrl }),
-      });
-      setImages(data.images);
-      setTotalImages(data.total_images);
-      setMissingAltCount(data.missing_alt_count);
-      setHasScanned(true);
+      const parsedUrl = new URL(urlToProcess); // <--- Use urlToProcess here!
+      
+      if (parsedUrl.hostname.includes("google.com") && parsedUrl.pathname.includes("/search")) {
+        await googleSearch(urlToProcess); // <--- Use urlToProcess here!
+      } else {
+        const data = await apiFetch("/scan", {
+          method: "POST",
+          body: JSON.stringify({ url: urlToProcess }), // <--- Use urlToProcess here!
+        });
+        setImages(data.images);
+        setTotalImages(data.total_images);
+        setMissingAltCount(data.missing_alt_count);
+        setHasScanned(true);
+      }
     } catch (err) {
-      setError("Failed to scan that URL. Check the address and try again.");
+      setError("Please enter a valid URL (including http:// or https://).");
     } finally {
       setLoading(false);
     }
@@ -492,19 +550,28 @@ export default function Dashboard() {
 
         <nav>
           {[
-            { icon: "⬡", label: "Scanner", active: true },
-            { icon: "◫", label: "Reports" },
-            { icon: "◈", label: "History" },
-            { icon: "◎", label: "Settings" },
-          ].map((item) => (
-            <div
-              key={item.label}
-              style={{ ...styles.navItem, ...(item.active ? styles.navItemActive : {}) }}
-            >
-              <span style={{ fontSize: "14px", opacity: 0.8 }}>{item.icon}</span>
-              {item.label}
-            </div>
-          ))}
+            { icon: "⬡", label: "Scanner", path: "/dashboard" },
+            { icon: "◫", label: "Reports", path: "/reports" },
+            { icon: "◈", label: "History", path: "/history" }, 
+          ].map((item) => {
+            // Dynamically check if the current URL matches the item's path
+            const isActive = location.pathname === item.path; 
+
+            return (
+              <div
+                key={item.label}
+                onClick={() => navigate(item.path)} // <--- Triggers the redirect
+                style={{ 
+                  ...styles.navItem, 
+                  cursor: "pointer", // <--- Makes it look clickable
+                  ...(isActive ? styles.navItemActive : {}) 
+                }}
+              >
+                <span style={{ fontSize: "14px", opacity: 0.8 }}>{item.icon}</span>
+                {item.label}
+              </div>
+            );
+          })}
         </nav>
 
         <div style={styles.sidebarBottom}>
@@ -547,7 +614,7 @@ export default function Dashboard() {
             </button>
           </form>
         </div>
-
+          
         {error && <div style={styles.errorBanner}>⚠ {error}</div>}
 
         {loading && (

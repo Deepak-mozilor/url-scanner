@@ -19,6 +19,13 @@ export const apiFetch = async (endpoint, options = {}) => {
     headers: headers,
   });
 
+  if (response.status === 401) {
+    if (redirectOn401) {
+      window.location.href = "/login";  
+    }
+    throw new Error("Session expired. Redirecting to login...");
+  }
+
   if (!response.ok) {
     throw new Error(`API Error: ${response.status}`);
   }

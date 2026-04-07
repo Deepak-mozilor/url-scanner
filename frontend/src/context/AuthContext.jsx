@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const data = await apiFetch("/verify-session"); 
+        const data = await apiFetch("/verify-session",{ redirectOn401: false }); 
         setUser(data.user || { id: "Authenticated" });
       } catch (error) {
         setUser(null); 
