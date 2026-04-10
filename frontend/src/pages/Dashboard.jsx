@@ -472,32 +472,7 @@ export default function Dashboard() {
     }
   }, [location.state]);
   
-  const googleSearch = async (googleUrl) => {
-    try {
-      // 1. Fetch the raw HTML from Google via your proxy
-      const proxyData = await apiFetch(`/proxy/google?url=${encodeURIComponent(googleUrl)}`);
-      
-      // 2. Immediately send that raw HTML to your scanner
-      const scanData = await apiFetch("/scan", {
-        method: "POST",
-        body: JSON.stringify({ 
-          url: googleUrl, 
-          html: proxyData.html // <--- Passing the raw HTML to the backend!
-        }),
-      });
 
-      console.log(proxyData.html);
-
-      setImages(scanData.images);
-      setTotalImages(scanData.total_images);
-      setMissingAltCount(scanData.missing_alt_count);
-      setHasScanned(true);
-
-    } catch (error) {
-      console.error("Google scan failed:", error);
-      setError("Failed to scan Google Search URL.");
-    }
-  };
 
   // 2. The Traffic Cop
   const handleScan = async (e, directUrl = null) => {
@@ -514,20 +489,15 @@ export default function Dashboard() {
     setHasScanned(false);
 
     try {
-      const parsedUrl = new URL(urlToProcess); // <--- Use urlToProcess here!
-      
-      if (parsedUrl.hostname.includes("google.com") && parsedUrl.pathname.includes("/search")) {
-        await googleSearch(urlToProcess); // <--- Use urlToProcess here!
-      } else {
-        const data = await apiFetch("/scan", {
-          method: "POST",
-          body: JSON.stringify({ url: urlToProcess }), // <--- Use urlToProcess here!
+        const data = await apiFetch("/api/scan", {
+              method: "POST",
+              body: JSON.stringify({ url: urlToProcess }), // <--- Use urlToProcess here!
         });
         setImages(data.images);
         setTotalImages(data.total_images);
         setMissingAltCount(data.missing_alt_count);
         setHasScanned(true);
-      }
+      
     } catch (err) {
       setError("Please enter a valid URL (including http:// or https://).");
     } finally {

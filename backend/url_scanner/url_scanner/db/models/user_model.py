@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import Boolean, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql.sqltypes import String
 
 from url_scanner.db.base import Base
 
@@ -17,6 +17,7 @@ class User(Base):
         String(length=200), index=True, unique=True, nullable=False
     )
     hashed_password: Mapped[str] = mapped_column(
-        String(length=200), index=True, unique=True, nullable=False
+        String(length=200), index=True, nullable=False
     )
-    is_active = mapped_column(Boolean, default=True)
+
+    urls: Mapped[list["Url"]] = relationship(back_populates="owner", cascade="all, delete-orphan")

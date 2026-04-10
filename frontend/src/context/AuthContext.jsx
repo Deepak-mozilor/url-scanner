@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const data = await apiFetch("/verify-session",{ redirectOn401: false }); 
+        const data = await apiFetch("/api/verify-session",{ redirectOn401: false }); 
         setUser(data.user || { id: "Authenticated" });
       } catch (error) {
         setUser(null); 
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
   
 
   const signup = async (email, username, password) => {
-    const data = await apiFetch("/signup", {
+    const data = await apiFetch("/api/signup", {
       method: "POST",
       body: JSON.stringify({ email, username, password }),
     });
@@ -38,13 +38,13 @@ export const AuthProvider = ({ children }) => {
 
 
   const login = async (username, password) => {
-    const data = await apiFetch("/login", {
+    const data = await apiFetch("/api/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
     });
     
     
-    setCookie("access_token", data.access_token, 1); 
+    setCookie("access_token", data.access_token, 60); 
     setUser(data.user);
   };
 

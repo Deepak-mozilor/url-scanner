@@ -21,7 +21,7 @@ export default function Reports() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const data = await apiFetch("/reports");
+        const data = await apiFetch("/api/reports");
         setReportData(data);
       } catch (err) {
         console.error(err);
@@ -52,7 +52,7 @@ export default function Reports() {
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
 
-      const historyData = await apiFetch("/history");
+      const historyData = await apiFetch("/api/history");
 
       const tableRows = historyData.map(scan => {
         const hasIssues = scan.without_alt > 0;

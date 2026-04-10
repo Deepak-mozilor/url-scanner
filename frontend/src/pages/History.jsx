@@ -15,7 +15,7 @@ export default function History() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const data = await apiFetch("/history");
+        const data = await apiFetch("/api/history");
         setHistory(data);
       } catch (err) {
         setError("Failed to load history.");
@@ -150,7 +150,7 @@ export default function History() {
                           </td>
                           <td style={{ ...styles.td, maxWidth: "300px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             <span 
-                              onClick={() => navigate("/", { state: { autoScanUrl: scan.url } })} 
+                              onClick={() => navigate("/dashboard", { state: { autoScanUrl: scan.url } })} 
                               style={styles.link}
                               title="Click to run a new scan on this URL"
                             >

@@ -1,4 +1,7 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime
+
+from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.sqltypes import Integer, String, Text
 
 from url_scanner.db.base import Base
@@ -10,9 +13,11 @@ class Url(Base):
     __tablename__ = "url_db"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user: Mapped[str] = mapped_column(String(length=200))
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     url: Mapped[str] = mapped_column(Text)
     total_img: Mapped[int] = mapped_column(Integer, nullable=True)
     with_alt: Mapped[int] = mapped_column(Integer,nullable=True)
     without_alt: Mapped[int] = mapped_column(Integer,nullable=True)
-    timestamp: Mapped[str] = mapped_column(String(length=200))
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    owner: Mapped["User"] = relationship(back_populates="urls")

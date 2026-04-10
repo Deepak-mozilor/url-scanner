@@ -1,8 +1,8 @@
-import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -10,17 +10,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from url_scanner.db.dependencies import get_db_session
 from url_scanner.db.models.user_model import User
+from url_scanner.settings import settings
 
-SECRET_KEY = os.getenv("SECRET_KEY", "")
+SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
-
-
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 security = HTTPBearer()
 
-async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials 
+async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(security)):  # noqa: E501
+    token = credentials.credentials
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -28,7 +26,7 @@ async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(
 
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token payload.")
-            
+
         return user_id
 
     except JWTError:
@@ -81,7 +79,7 @@ async def authenticate_user(db: AsyncSession, username: str, password: str):
 
 def create_token(data):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=10)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=60)
 
     to_encode.update({"exp": expire})
 
