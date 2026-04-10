@@ -4,11 +4,15 @@ from pydantic import BaseModel, ConfigDict, HttpUrl
 
 
 class ImageDetail(BaseModel):
+    """BaseModel for storing image detail in ScanResponse."""
+
     url: str
     alt_text: str | None
     has_alt: bool
 
 class ScanResponse(BaseModel):
+    """Response model for scan api."""
+
     message: str
     scan_id: int
     total_images: int
@@ -16,10 +20,14 @@ class ScanResponse(BaseModel):
     images: list[ImageDetail]
 
 class ScanRequest(BaseModel):
+    """Class for Url type checking."""
+
     url: HttpUrl
 
 # --- Schema for /history ---
 class HistoryResponse(BaseModel):
+    """Response model for history api."""
+
     id: int
     url: str
     total_img: int | None

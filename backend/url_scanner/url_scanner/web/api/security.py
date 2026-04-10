@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -17,7 +17,9 @@ ALGORITHM = "HS256"
 
 security = HTTPBearer()
 
-async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(security)):  # noqa: E501
+async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> int:  # noqa: E501
+    """Function to verify user."""
+
     token = credentials.credentials
 
     try:
@@ -34,6 +36,8 @@ async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(
 
 
 class UserLogin(BaseModel):
+    """Model for login data."""
+
     username: str
     password: str
 
@@ -44,7 +48,9 @@ router = APIRouter()
 @router.post("/login")
 async def send_login(
     user: UserLogin, response: Response, db: AsyncSession = Depends(get_db_session)
-):
+)->dict:
+    """Function for login credentials."""
+
     db_user = await authenticate_user(db, user.username, user.password)
 
     if not db_user:
@@ -63,7 +69,8 @@ async def send_login(
     }
 
 
-async def authenticate_user(db: AsyncSession, username: str, password: str):
+async def authenticate_user(db: AsyncSession, username: str, password: str) -> list:
+    """Function for checking username and password from db."""
 
     result = await db.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
@@ -77,9 +84,11 @@ async def authenticate_user(db: AsyncSession, username: str, password: str):
     return user
 
 
-def create_token(data):
+def create_token(data : dict) -> str:
+    """Creating jwt token."""
+
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=60)
+    expire = datetime.now(UTC) + timedelta(minutes=60)
 
     to_encode.update({"exp": expire})
 
@@ -87,11 +96,13 @@ def create_token(data):
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Function to decrpyt password."""
     pwd_bytes = plain_password.encode("utf-8")
     hash_bytes = hashed_password.encode("utf-8")
     return bcrypt.checkpw(pwd_bytes, hash_bytes)
 
 
 @router.get("/verify-session")
-async def verify_session(user_id: int = Depends(verify_user_token)):
+async def verify_session(user_id: int = Depends(verify_user_token)) -> dict:
+    """Function for session verification."""
     return {"user": {"id": user_id}}

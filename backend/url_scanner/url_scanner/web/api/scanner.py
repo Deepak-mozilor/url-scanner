@@ -22,7 +22,8 @@ async def scan_website_images(
     request: ScanRequest,
     user_id: int = Depends(verify_user_token),
     db: AsyncSession= Depends(get_db_session)
-):
+) -> dict:
+    """Function for receiving url and process html."""
     target_url = str(request.url)
 
     headers = {
@@ -36,10 +37,10 @@ async def scan_website_images(
             html_content = response.text
 
     except Exception as e:
-        logger.exception(f"HTTP fetch failed for target website: {str(e)}")
+        logger.exception(f"HTTP fetch failed for target website: {e!s}")
 
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Could not fetch the requested website. Please verify the URL and try again."
         )
 
@@ -64,7 +65,7 @@ async def scan_website_images(
     clean_url = target_url.rstrip("/")
 
     new_entry = Url(
-        user_id=user_id,  
+        user_id=user_id,
         url=clean_url,
         total_img=len(image_data),
         with_alt=len(image_data) - missing_alt_count,
@@ -90,7 +91,8 @@ async def scan_website_images(
 async def get_scan_history(
     db: AsyncSession = Depends(get_db_session),
     user_id: int = Depends(verify_user_token)
-):
+) -> list:
+    """Function to get user history."""
     query = (
         select(Url)
         .where(Url.user_id == user_id)
@@ -106,6 +108,7 @@ async def get_reports_data(
     db: AsyncSession = Depends(get_db_session),
     user_id: int = Depends(verify_user_token)
 ) ->dict:
+    """Function to get report of users search history."""
     # 1. Fetch all scans for this user
     query = select(Url).where(Url.user_id == user_id)
     result = await db.execute(query)

@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import gettempdir
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from yarl import URL
+from yarl import URL  # type: ignore
 
 TEMP_DIR = Path(gettempdir())
 

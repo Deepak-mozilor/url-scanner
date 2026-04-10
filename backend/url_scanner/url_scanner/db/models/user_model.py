@@ -20,4 +20,4 @@ class User(Base):
         String(length=200), index=True, nullable=False
     )
 
-    urls: Mapped[list["Url"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
+    urls: Mapped[list["Url"]] = relationship(back_populates="owner", cascade="all, delete-orphan") # type: ignore  # noqa: E501, F821

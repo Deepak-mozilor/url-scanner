@@ -1,14 +1,13 @@
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from url_scanner.log import configure_logging
+from url_scanner.settings import settings
 from url_scanner.web.api.router import api_router
 from url_scanner.web.lifespan import lifespan_setup
-from url_scanner.settings import settings
-
 
 APP_ROOT = Path(__file__).parent.parent
 
@@ -40,7 +39,7 @@ def get_app() -> FastAPI:
 
     # Main router for the API.
     app.include_router(router=api_router, prefix="/api")
-    
+
     # Adds static directory.
     # This directory is used to access swagger files.
     app.mount("/static", StaticFiles(directory=APP_ROOT / "static"), name="static")

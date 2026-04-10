@@ -8,6 +8,8 @@ from url_scanner.db.models.user_model import User
 
 
 class UserLoginRequest(BaseModel):
+    """Model for login."""
+
     email: EmailStr
     username: str
     password: str
@@ -17,8 +19,9 @@ router = APIRouter()
 
 
 @router.post("/signup")
-async def sign_up(user: UserLoginRequest, db: AsyncSession = Depends(get_db_session)):
-
+async def sign_up(user: UserLoginRequest,
+                  db: AsyncSession = Depends(get_db_session)) -> dict:
+    """Function for signup api."""
     new_entry = User(
         email=user.email,
         username=user.username,
@@ -33,6 +36,7 @@ async def sign_up(user: UserLoginRequest, db: AsyncSession = Depends(get_db_sess
 
 
 def hashed(password: str) -> str:
+    """Convert str to hash for storing in db."""
     pwd_bytes = password.encode("utf-8")
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(pwd_bytes, salt)
