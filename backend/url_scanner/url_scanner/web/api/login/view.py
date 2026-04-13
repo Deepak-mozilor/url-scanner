@@ -1,11 +1,11 @@
 from datetime import UTC, datetime, timedelta
 
 import bcrypt
+from url_scanner.db.dao.user_dao import UserDAO
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
-from backend.url_scanner.url_scanner.db.dao.user_dao import UserDAO
 from url_scanner.settings import settings
 from url_scanner.web.api.login.schema import UserLogin
 

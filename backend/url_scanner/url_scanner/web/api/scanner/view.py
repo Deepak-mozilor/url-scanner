@@ -3,10 +3,10 @@ from collections import defaultdict
 from urllib.parse import urljoin, urlparse
 
 import httpx
+from url_scanner.db.dao.url_data_dao import UrlDAO
 from bs4 import BeautifulSoup  # type: ignore
 from fastapi import APIRouter, Depends, HTTPException
 
-from backend.url_scanner.url_scanner.db.dao.url_db_dao import UrlDAO
 from url_scanner.web.api.login.view import verify_user_token
 from url_scanner.web.api.scanner.schema import (
     HistoryResponse,

@@ -1,9 +1,9 @@
+from url_scanner.db.models.url_data import Url
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from url_scanner.db.dependencies import get_db_session
-from backend.url_scanner.url_scanner.db.models.url_db.url_db import Url
 
 
 class UrlDAO:
