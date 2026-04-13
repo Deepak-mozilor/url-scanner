@@ -31,8 +31,8 @@ async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(
 
         return user_id
 
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Token expired or invalid.")
+    except JWTError as err:
+        raise HTTPException(status_code=401, detail="Token expired or invalid.")from err
 
 
 class UserLogin(BaseModel):
