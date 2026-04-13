@@ -1,36 +1,23 @@
 import bcrypt
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, EmailStr
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from url_scanner.db.dependencies import get_db_session
-from url_scanner.db.models.user_model import User
-
-
-class UserLoginRequest(BaseModel):
-    """Model for login."""
-
-    email: EmailStr
-    username: str
-    password: str
-
+from url_scanner.db.dao.user_dao.user_dao import UserDAO
+from url_scanner.web.api.sign_up.schema import UserLoginRequest
 
 router = APIRouter()
 
-
 @router.post("/signup")
 async def sign_up(user: UserLoginRequest,
-                  db: AsyncSession = Depends(get_db_session)) -> dict:
+                  user_dao: UserDAO = Depends()) -> dict:
     """Function for signup api."""
-    new_entry = User(
+
+    hashed_pwd = hashed(user.password)
+
+    new_entry = await user_dao.create_user(
         email=user.email,
         username=user.username,
-        hashed_password=hashed(user.password),
+        hashed_password=hashed_pwd,
     )
-
-    db.add(new_entry)
-    await db.commit()
-    await db.refresh(new_entry)
 
     return {"message": "User created successfully", "user_id": new_entry.id}
 

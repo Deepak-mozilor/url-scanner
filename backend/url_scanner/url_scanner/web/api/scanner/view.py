@@ -5,13 +5,14 @@ from urllib.parse import urljoin, urlparse
 import httpx
 from bs4 import BeautifulSoup  # type: ignore
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from url_scanner.db.dependencies import get_db_session
-from url_scanner.db.models.main_model import Url
-from url_scanner.web.api.schemas import HistoryResponse, ScanRequest, ScanResponse
-from url_scanner.web.api.security import verify_user_token
+from url_scanner.db.dao.url_dao.url_dao import UrlDAO
+from url_scanner.web.api.login.view import verify_user_token
+from url_scanner.web.api.scanner.schema import (
+    HistoryResponse,
+    ScanRequest,
+    ScanResponse,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -21,7 +22,7 @@ router = APIRouter()
 async def scan_website_images(
     request: ScanRequest,
     user_id: int = Depends(verify_user_token),
-    db: AsyncSession= Depends(get_db_session)
+    url_dao: UrlDAO = Depends()
 ) -> dict:
     """Function for receiving url and process html."""
     target_url = str(request.url)
@@ -42,7 +43,7 @@ async def scan_website_images(
         raise HTTPException(
             status_code=400,
             detail="Could not fetch the requested website. Please verify the URL and try again."
-        )
+        )from e
 
     soup = BeautifulSoup(html_content, "html.parser")
     img_tags = soup.find_all("img")
@@ -64,19 +65,14 @@ async def scan_website_images(
 
     clean_url = target_url.rstrip("/")
 
-    new_entry = Url(
+    saved_scan = await url_dao.create_scan_record(
         user_id=user_id,
         url=clean_url,
         total_img=len(image_data),
-        with_alt=len(image_data) - missing_alt_count,
-        without_alt=missing_alt_count,
+        without_alt=missing_alt_count
     )
 
-    db.add(new_entry)
-    await db.commit()
-    await db.refresh(new_entry)
-
-    scan_id = new_entry.id
+    scan_id = saved_scan.id
 
     return {
         "message": "Scrape successful",
@@ -89,30 +85,22 @@ async def scan_website_images(
 
 @router.get("/history", response_model=list[HistoryResponse])
 async def get_scan_history(
-    db: AsyncSession = Depends(get_db_session),
+    url_dao: UrlDAO = Depends(),
     user_id: int = Depends(verify_user_token)
 ) -> list:
     """Function to get user history."""
-    query = (
-        select(Url)
-        .where(Url.user_id == user_id)
-        .order_by(Url.timestamp.desc())
-    )
 
-    result = await db.execute(query)
-
-    return result.scalars().all()
+    return await url_dao.get_user_history(user_id=user_id)
 
 @router.get("/reports")
 async def get_reports_data(
-    db: AsyncSession = Depends(get_db_session),
+    url_dao: UrlDAO = Depends(),
     user_id: int = Depends(verify_user_token)
 ) ->dict:
     """Function to get report of users search history."""
+
     # 1. Fetch all scans for this user
-    query = select(Url).where(Url.user_id == user_id)
-    result = await db.execute(query)
-    scans = result.scalars().all()
+    scans = await url_dao.get_user_history(user_id=user_id)
 
     # 2. Calculate Global Stats
     total_urls = len(scans)

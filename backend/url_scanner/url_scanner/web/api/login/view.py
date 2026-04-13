@@ -4,13 +4,10 @@ import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from url_scanner.db.dependencies import get_db_session
-from url_scanner.db.models.user_model import User
+from url_scanner.db.dao.user_dao.user_dao import UserDAO
 from url_scanner.settings import settings
+from url_scanner.web.api.login.schema import UserLogin
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
@@ -35,23 +32,17 @@ async def verify_user_token(credentials: HTTPAuthorizationCredentials = Depends(
         raise HTTPException(status_code=401, detail="Token expired or invalid.")from err
 
 
-class UserLogin(BaseModel):
-    """Model for login data."""
-
-    username: str
-    password: str
-
 
 router = APIRouter()
 
 
 @router.post("/login")
 async def send_login(
-    user: UserLogin, response: Response, db: AsyncSession = Depends(get_db_session)
+    user: UserLogin, response: Response, user_dao: UserDAO = Depends()
 )->dict:
     """Function for login credentials."""
 
-    db_user = await authenticate_user(db, user.username, user.password)
+    db_user = await authenticate_user(user_dao, user.username, user.password)
 
     if not db_user:
         raise HTTPException(
@@ -69,11 +60,10 @@ async def send_login(
     }
 
 
-async def authenticate_user(db: AsyncSession, username: str, password: str) -> list:
+async def authenticate_user(user_dao: UserDAO, username: str, password: str) -> list:
     """Function for checking username and password from db."""
 
-    result = await db.execute(select(User).where(User.username == username))
-    user = result.scalar_one_or_none()
+    user = await user_dao.get_user_by_username(username)
 
     if not user:
         return None
