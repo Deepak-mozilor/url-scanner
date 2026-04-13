@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from url_scanner.db.dependencies import get_db_session
-from url_scanner.db.models.user import User
+from url_scanner.db.models.user_model import User
 
 
 class UserDAO:

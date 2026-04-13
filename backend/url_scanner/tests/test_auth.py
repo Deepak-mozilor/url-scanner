@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest  # type: ignore
-from backend.url_scanner.url_scanner.db.models.user import User
+from backend.url_scanner.url_scanner.db.models.user_model import User
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette import status
