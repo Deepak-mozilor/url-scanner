@@ -8,9 +8,9 @@ from url_scanner.db.base import Base
 
 
 class Url(Base):
-    """Model for demo purpose."""
+    """Model for Url data."""
 
-    __tablename__ = "url_db"
+    __tablename__ = "url_data"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
@@ -20,4 +20,4 @@ class Url(Base):
     without_alt: Mapped[int] = mapped_column(Integer,nullable=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
-    owner: Mapped["User"] = relationship(back_populates="urls")  # noqa: F821
+    owner: Mapped["User"] = relationship(back_populates="urls")  # type: ignore # noqa: F821

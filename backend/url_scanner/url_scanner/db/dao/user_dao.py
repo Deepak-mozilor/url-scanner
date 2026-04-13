@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from url_scanner.db.dependencies import get_db_session
-from url_scanner.db.models.user_model.user_model import User
+from backend.url_scanner.url_scanner.db.models.user import User
 
 
 class UserDAO:
@@ -18,7 +18,7 @@ class UserDAO:
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
-    async def create_user(self, email: str, username: str, hashed_password: str) -> User:
+    async def create_user(self, email: str, username: str, hashed_password: str) ->User:
         """Saves a new user to the database."""
         new_user = User(
             email=email,

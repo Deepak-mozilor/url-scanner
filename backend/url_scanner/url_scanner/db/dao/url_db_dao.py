@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from url_scanner.db.dependencies import get_db_session
-from url_scanner.db.models.main_model.main_model import Url
+from backend.url_scanner.url_scanner.db.models.url_db.url_db import Url
 
 
 class UrlDAO:

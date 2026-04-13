@@ -5,7 +5,7 @@ from url_scanner.db.base import Base
 
 
 class User(Base):
-    """Model for demo purpose."""
+    """Model for user data."""
 
     __tablename__ = "user"
 

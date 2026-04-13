@@ -1,7 +1,7 @@
 import bcrypt
 from fastapi import APIRouter, Depends
 
-from url_scanner.db.dao.user_dao.user_dao import UserDAO
+from backend.url_scanner.url_scanner.db.dao.user_dao import UserDAO
 from url_scanner.web.api.sign_up.schema import UserLoginRequest
 
 router = APIRouter()
