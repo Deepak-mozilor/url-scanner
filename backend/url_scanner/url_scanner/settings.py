@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     workers_count: int = 1
     # Enable uvicorn reloading
     reload: bool = False
-    secret_key: str = "dfgvbsfhbvsfbhshbfchbdvhdfbv"
+    secret_key: str
 
     cors_origins: list[str] = ["http://localhost:5173"]
 
