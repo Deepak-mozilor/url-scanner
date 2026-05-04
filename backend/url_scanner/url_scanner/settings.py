@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     reload: bool = False
     secret_key: str
 
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: list[str] = ["http://localhost:5173","https://prolonged-swagger-ramp.ngrok-free.dev"]
 
     # Current environment
     environment: str = "dev"
