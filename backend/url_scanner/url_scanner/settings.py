@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     reload: bool = False
     secret_key: str
 
-    cors_origins: list[str] = ["http://localhost:5173","https://prolonged-swagger-ramp.ngrok-free.dev"]
+    cors_origins: list[str] = ["http://localhost:5173","https://url-scanner-zeta.vercel.app"]
 
     # Current environment
     environment: str = "dev"
