@@ -52,12 +52,7 @@ export default function Reports() {
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
 
-      const HistoryData = await apiFetch("/api/history", { // <--- Just the path!
-          method: "GET",
-          headers: {
-              "ngrok-skip-browser-warning": "true" 
-          }
-      });
+      const historyData = await apiFetch("/api/history");
 
       const tableRows = historyData.map(scan => {
         const hasIssues = scan.without_alt > 0;

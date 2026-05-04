@@ -15,13 +15,7 @@ export default function History() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        // Inside History.jsx
-        const data = await apiFetch("/api/history", { // <--- Just the path!
-            method: "GET",
-            headers: {
-                "ngrok-skip-browser-warning": "true" 
-            }
-        });
+        const data = await apiFetch("/api/history");
         setHistory(data);
       } catch (err) {
         setError("Failed to load history.");
