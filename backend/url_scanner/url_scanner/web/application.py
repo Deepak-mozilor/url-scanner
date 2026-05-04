@@ -31,7 +31,7 @@ def get_app() -> FastAPI:
 
     app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins, # MUST be the exact React URL, not "*"
+    allow_origins=["*"], # MUST be the exact React URL, not "*"
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
