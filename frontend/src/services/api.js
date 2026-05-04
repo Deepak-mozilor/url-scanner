@@ -1,6 +1,6 @@
 import { getCookie } from "../utils/cookie.js";
 
-const BASE_URL = "http://localhost:8000"; 
+const BASE_URL = "https://prolonged-swagger-ramp.ngrok-free.dev";
 
 export const apiFetch = async (endpoint, options = {}) => {
   const token = getCookie("access_token"); 
